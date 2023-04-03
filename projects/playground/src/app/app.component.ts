@@ -34,21 +34,55 @@ import { NgForm } from '@angular/forms';
         L'adresse email est invalide
       </p>
       <input
+        required
+        minlength="3"
         ngModel
+        [class.is-invalid]="password.touched && password.invalid"
+        [class.is-valid]="password.touched && password.valid"
+        #password="ngModel"
         type="password"
         name="password"
         id="password"
         class="form-control mb-2"
         placeholder="Mot de passe"
       />
+      <p
+        class="invalid-feedback"
+        *ngIf="password.touched && password.hasError('required')"
+      >
+        Le mot de passe est Obligatoire
+      </p>
+      <p
+        class="invalid-feedback"
+        *ngIf="password.touched && password.hasError('minlength')"
+      >
+        Le mot de passe doit faire plus de 3 caractères
+      </p>
       <input
+        required
+        minlength="3"
         ngModel
+        [class.is-invalid]="confirm.touched && confirm.invalid"
+        [class.is-valid]="confirm.touched && confirm.valid"
+        #confirm="ngModel"
         type="password"
         name="confirm"
         id="confirm"
         class="form-control mb-2"
         placeholder="Confirmation du mot de passe"
       />
+      <p
+        class="invalid-feedback"
+        *ngIf="confirm.touched && confirm.hasError('required')"
+      >
+        La confirmation est Obligatoire
+      </p>
+      <p
+        class="invalid-feedback"
+        *ngIf="confirm.touched && confirm.hasError('minlength')"
+      >
+        La confirmation doit faire plus de 3 caractères
+      </p>
       <button class="btn btn-success" [disabled]="form.invalid">
         Inscription
       </button>
