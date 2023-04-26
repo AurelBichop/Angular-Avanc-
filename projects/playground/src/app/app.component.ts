@@ -13,12 +13,13 @@ import { NgForm } from '@angular/forms';
       [ngFormOptions]="{ updateOn: 'change' }"
       (submit)="onSubmit(form)"
     >
+      {{ data.email }}
       <input
         required
         bannedEmail="test@test.com"
         uniqueEmail
         email
-        ngModel
+        [(ngModel)]="data.email"
         [ngModelOptions]="{ updateOn: 'change' }"
         #email="ngModel"
         [class.is-invalid]="email.touched && email.invalid"
@@ -51,11 +52,19 @@ import { NgForm } from '@angular/forms';
       >
         L'adresse email est invalide
       </p>
+
+      <app-color-picker
+        [(ngModel)]="data.color"
+        [ngModelOptions]="{ name: 'color' }"
+        label="Quelle est votre couleur préféré"
+        color="purple"
+      ></app-color-picker>
+
       <div ngModelGroup="security" confirmPassword>
         <input
           required
           minlength="3"
-          ngModel
+          [(ngModel)]="data.password"
           [class.is-invalid]="password.touched && password.invalid"
           [class.is-valid]="password.touched && password.valid"
           #password="ngModel"
@@ -80,7 +89,7 @@ import { NgForm } from '@angular/forms';
         <input
           required
           minlength="3"
-          ngModel
+          [ngModel]="data.password"
           [class.is-invalid]="confirm.touched && confirm.invalid"
           [class.is-valid]="confirm.touched && confirm.valid"
           #confirm="ngModel"
@@ -117,8 +126,11 @@ import { NgForm } from '@angular/forms';
   styles: [],
 })
 export class AppComponent {
-  @ViewChild('email')
-  emailInput?: ElementRef<HTMLInputElement>;
+  data = {
+    email: 'aurel.bichop@laposte.net',
+    color: 'red',
+    password: 'pass4',
+  };
 
   onSubmit(form: NgForm) {
     if (form.invalid) {
