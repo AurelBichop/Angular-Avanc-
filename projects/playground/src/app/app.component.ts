@@ -3,6 +3,7 @@ import {
   AbstractControl,
   AsyncValidatorFn,
   FormControl,
+  FormGroup,
   ValidatorFn,
   Validators,
 } from '@angular/forms';
@@ -12,10 +13,11 @@ import {
   template: `
     <div class="container">
       <h1>Angular Avancé !</h1>
-      <form>
+      <form [formGroup]="inscription" (submit)="onSubmit()">
         <input
-          [formControl]="email"
+          formControlName="email"
           [class.is-invalid]="email.dirty && email.invalid"
+          [class.is-valid]="email.dirty && email.valid"
           type="email"
           name="email"
           id="email"
@@ -51,7 +53,7 @@ import {
           L'adresse email existe déja
         </p>
         <input
-          [formControl]="password"
+          formControlName="password"
           [class.is-invalid]="password.touched && password.invalid"
           [class.is-valid]="password.touched && password.valid"
           type="password"
@@ -73,33 +75,59 @@ import {
           Longeur minimal de 4 caracteres
         </p>
         <input
+          formControlName="confirm"
+          [class.is-invalid]="confirm.touched && confirm.invalid"
+          [class.is-valid]="confirm.touched && confirm.valid"
           type="password"
           name="confirm"
           id="confirm"
           class="form-control mb-2"
           placeholder="Confirmation du mot de passe"
         />
-
+        <p
+          class="invalid-feedback"
+          *ngIf="confirm.touched && confirm.hasError('required')"
+        >
+          La confirmation est obligatoire
+        </p>
         <button class="btn btn-success">Inscription</button>
       </form>
     </div>
   `,
 })
 export class AppComponent {
-  email = new FormControl(
-    '',
-    [
+  inscription = new FormGroup({
+    email: new FormControl(
+      '',
+      [
+        Validators.required,
+        Validators.email,
+        createBannedEmailValidator('test@test.com'),
+      ],
+      [uniqueEmailValidator]
+    ),
+    password: new FormControl('', [
       Validators.required,
-      Validators.email,
-      createBannedEmailValidator('test@test.com'),
-    ],
-    [uniqueEmailValidator]
-  );
+      Validators.minLength(4),
+    ]),
+    confirm: new FormControl('', [Validators.required]),
+  });
 
-  password = new FormControl('', [
-    Validators.required,
-    Validators.minLength(4),
-  ]);
+  onSubmit() {
+    console.log(this.inscription.value);
+  }
+
+  get email() {
+    return this.inscription.controls.email;
+  }
+
+  get password() {
+    return this.inscription.controls.password;
+  }
+
+  get confirm() {
+    return this.inscription.controls.confirm;
+  }
 }
 
 const uniqueEmailValidator: AsyncValidatorFn = (
