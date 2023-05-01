@@ -1,73 +1,59 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { Component } from '@angular/core';
+import {
+  AbstractControl,
+  AsyncValidatorFn,
+  FormControl,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 
 @Component({
   selector: 'app-root',
-  template: `<div class="container">
-    <h1>Angular Avancé !</h1>
-    <pre>{{ form.value | json }}</pre>
-    Formulaire Valide : {{ form.valid }}
-    <form
-      ngForm
-      #form="ngForm"
-      [ngFormOptions]="{ updateOn: 'change' }"
-      (submit)="onSubmit(form)"
-    >
-      {{ data.email }}
-      <input
-        required
-        bannedEmail="test@test.com"
-        uniqueEmail
-        email
-        [(ngModel)]="data.email"
-        [ngModelOptions]="{ updateOn: 'change' }"
-        #email="ngModel"
-        [class.is-invalid]="email.touched && email.invalid"
-        [class.is-valid]="email.touched && email.valid"
-        type="email"
-        name="email"
-        id="email"
-        class="form-control mb-2"
-        placeholder="Votre adresse email"
-      />
-      <p class="text-info" *ngIf="email.pending">
-        <span class="spinner-border spinner-border-sm"></span>
-        Vérification en Cours
-      </p>
-      <p
-        class="invalid-feedback"
-        *ngIf="email.touched && email.hasError('bannedEmail')"
-      >
-        L'adresse email {{ email.getError('bannedEmail') }} est interdite
-      </p>
-      <p
-        class="invalid-feedback"
-        *ngIf="email.touched && email.hasError('required')"
-      >
-        L'adresse email est obligatoire
-      </p>
-      <p
-        class="invalid-feedback"
-        *ngIf="email.touched && email.hasError('email')"
-      >
-        L'adresse email est invalide
-      </p>
-
-      <app-color-picker
-        [(ngModel)]="data.color"
-        [ngModelOptions]="{ name: 'color' }"
-        label="Quelle est votre couleur préféré"
-        color="purple"
-      ></app-color-picker>
-
-      <div ngModelGroup="security" confirmPassword>
+  template: `
+    <div class="container">
+      <h1>Angular Avancé !</h1>
+      <form>
         <input
-          required
-          minlength="3"
-          [(ngModel)]="data.password"
+          [formControl]="email"
+          [class.is-invalid]="email.dirty && email.invalid"
+          type="email"
+          name="email"
+          id="email"
+          class="form-control mb-2"
+          placeholder="Votre adresse email"
+        />
+        <p class="text-info" *ngIf="email.pending">
+          <span class="spinner-border border-spinner-sm"></span>
+          Chargement ...
+        </p>
+        <p
+          class="invalid-feedback"
+          *ngIf="email.touched && email.hasError('required')"
+        >
+          L'adresse email est obligatoire.
+        </p>
+        <p
+          class="invalid-feedback"
+          *ngIf="email.touched && email.hasError('email')"
+        >
+          L'adresse email n'est pas valide.
+        </p>
+        <p
+          class="invalid-feedback"
+          *ngIf="email.touched && email.hasError('bannedEmail')"
+        >
+          L'adresse email est Interdite
+        </p>
+        <p
+          class="invalid-feedback"
+          *ngIf="email.touched && email.hasError('uniqueEmail')"
+        >
+          L'adresse email existe déja
+        </p>
+        <input
+          [formControl]="password"
           [class.is-invalid]="password.touched && password.invalid"
           [class.is-valid]="password.touched && password.valid"
-          #password="ngModel"
           type="password"
           name="password"
           id="password"
@@ -78,64 +64,69 @@ import { NgForm } from '@angular/forms';
           class="invalid-feedback"
           *ngIf="password.touched && password.hasError('required')"
         >
-          Le mot de passe est Obligatoire
+          Mot de passe Obligatoire
         </p>
         <p
           class="invalid-feedback"
           *ngIf="password.touched && password.hasError('minlength')"
         >
-          Le mot de passe doit faire plus de 3 caractères
+          Longeur minimal de 4 caracteres
         </p>
         <input
-          required
-          minlength="3"
-          [ngModel]="data.password"
-          [class.is-invalid]="confirm.touched && confirm.invalid"
-          [class.is-valid]="confirm.touched && confirm.valid"
-          #confirm="ngModel"
           type="password"
           name="confirm"
           id="confirm"
           class="form-control mb-2"
           placeholder="Confirmation du mot de passe"
         />
-        <p
-          class="invalid-feedback"
-          *ngIf="confirm.touched && confirm.hasError('required')"
-        >
-          La confirmation est Obligatoire
-        </p>
-        <p
-          class="invalid-feedback"
-          *ngIf="confirm.touched && confirm.hasError('minlength')"
-        >
-          La confirmation doit faire plus de 3 caractères
-        </p>
-        <p
-          class="invalid-feedback"
-          *ngIf="confirm.touched && confirm.hasError('confirmPassword')"
-        >
-          La confirmation ne correspond pas au mot de passe
-        </p>
-      </div>
-      <button class="btn btn-success" [disabled]="form.invalid">
-        Inscription
-      </button>
-    </form>
-  </div>`,
-  styles: [],
+
+        <button class="btn btn-success">Inscription</button>
+      </form>
+    </div>
+  `,
 })
 export class AppComponent {
-  data = {
-    email: 'aurel.bichop@laposte.net',
-    color: 'red',
-    password: 'pass4',
+  email = new FormControl(
+    '',
+    [
+      Validators.required,
+      Validators.email,
+      createBannedEmailValidator('test@test.com'),
+    ],
+    [uniqueEmailValidator]
+  );
+
+  password = new FormControl('', [
+    Validators.required,
+    Validators.minLength(4),
+  ]);
+}
+
+const uniqueEmailValidator: AsyncValidatorFn = (
+  control: AbstractControl<string>
+) => {
+  return fetch(
+    'https://jsonplaceholder.typicode.com/users?email=' + control.value
+  )
+    .then((response) => response.json())
+    .then((users: any[]) => {
+      if (users.length > 0) {
+        return { uniqueEmail: true };
+      }
+      return null;
+    });
+};
+
+const createBannedEmailValidator = (bannedEmail: string) => {
+  const bannedEmailValidator: ValidatorFn = (
+    control: AbstractControl<string>
+  ) => {
+    if (control.value === bannedEmail) {
+      return { bannedEmail: true };
+    }
+
+    return null;
   };
 
-  onSubmit(form: NgForm) {
-    if (form.invalid) {
-      return;
-    }
-    console.log(form.value);
-  }
-}
+  return bannedEmailValidator;
+};
