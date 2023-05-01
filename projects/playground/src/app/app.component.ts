@@ -52,44 +52,52 @@ import {
         >
           L'adresse email existe déja
         </p>
-        <input
-          formControlName="password"
-          [class.is-invalid]="password.touched && password.invalid"
-          [class.is-valid]="password.touched && password.valid"
-          type="password"
-          name="password"
-          id="password"
-          class="form-control mb-2"
-          placeholder="Mot de passe"
-        />
-        <p
-          class="invalid-feedback"
-          *ngIf="password.touched && password.hasError('required')"
-        >
-          Mot de passe Obligatoire
-        </p>
-        <p
-          class="invalid-feedback"
-          *ngIf="password.touched && password.hasError('minlength')"
-        >
-          Longeur minimal de 4 caracteres
-        </p>
-        <input
-          formControlName="confirm"
-          [class.is-invalid]="confirm.touched && confirm.invalid"
-          [class.is-valid]="confirm.touched && confirm.valid"
-          type="password"
-          name="confirm"
-          id="confirm"
-          class="form-control mb-2"
-          placeholder="Confirmation du mot de passe"
-        />
-        <p
-          class="invalid-feedback"
-          *ngIf="confirm.touched && confirm.hasError('required')"
-        >
-          La confirmation est obligatoire
-        </p>
+        <div formGroupName="security">
+          <input
+            formControlName="password"
+            [class.is-invalid]="password.touched && password.invalid"
+            [class.is-valid]="password.touched && password.valid"
+            type="password"
+            name="password"
+            id="password"
+            class="form-control mb-2"
+            placeholder="Mot de passe"
+          />
+          <p
+            class="invalid-feedback"
+            *ngIf="password.touched && password.hasError('required')"
+          >
+            Mot de passe Obligatoire
+          </p>
+          <p
+            class="invalid-feedback"
+            *ngIf="password.touched && password.hasError('minlength')"
+          >
+            Longeur minimal de 4 caracteres
+          </p>
+          <input
+            formControlName="confirm"
+            [class.is-invalid]="confirm.touched && confirm.invalid"
+            [class.is-valid]="confirm.touched && confirm.valid"
+            type="password"
+            name="confirm"
+            id="confirm"
+            class="form-control mb-2"
+            placeholder="Confirmation du mot de passe"
+          />
+          <p
+            class="invalid-feedback"
+            *ngIf="confirm.touched && confirm.hasError('required')"
+          >
+            La confirmation est obligatoire
+          </p>
+          <p
+            class="invalid-feedback"
+            *ngIf="confirm.touched && confirm.hasError('confirmPassword')"
+          >
+            La confirmation n'est pas identique au mot de passe
+          </p>
+        </div>
         <button class="btn btn-success">Inscription</button>
       </form>
     </div>
@@ -106,11 +114,18 @@ export class AppComponent {
       ],
       [uniqueEmailValidator]
     ),
-    password: new FormControl('', [
-      Validators.required,
-      Validators.minLength(4),
-    ]),
-    confirm: new FormControl('', [Validators.required]),
+    security: new FormGroup(
+      {
+        password: new FormControl('', [
+          Validators.required,
+          Validators.minLength(4),
+        ]),
+        confirm: new FormControl('', [Validators.required]),
+      },
+      {
+        validators: [confirmPasswordValidator],
+      }
+    ),
   });
 
   onSubmit() {
@@ -122,13 +137,33 @@ export class AppComponent {
   }
 
   get password() {
-    return this.inscription.controls.password;
+    return this.security.controls.password;
   }
 
   get confirm() {
-    return this.inscription.controls.confirm;
+    return this.security.controls.confirm;
+  }
+
+  get security() {
+    return this.inscription.controls.security;
   }
 }
+
+const confirmPasswordValidator: ValidatorFn = (
+  control: AbstractControl<{
+    password: FormControl<string>;
+    confirm: FormControl<string>;
+  }>
+) => {
+  const password = control.get('password');
+  const confirm = control.get('confirm');
+
+  if (password?.value === confirm?.value) {
+    return null;
+  }
+  confirm?.setErrors({ confirmPassword: true });
+  return { confirmPassword: true };
+};
 
 const uniqueEmailValidator: AsyncValidatorFn = (
   control: AbstractControl<string>
