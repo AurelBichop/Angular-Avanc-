@@ -114,6 +114,10 @@ import {
         <div class="alert bg-info" *ngIf="languages.controls.length === 0">
           Vous n'avez pas ajoutez de langages
         </div>
+        <p class="text-danger" *ngIf="languages.hasError('mustHave2Languages')">
+          Vous devez avoir deux languages au minimum
+        </p>
+
         <div
           class="row"
           *ngFor="let group of languages.controls; let i = index"
@@ -205,23 +209,33 @@ export class AppComponent {
   }
 
   ngOnInit() {
-    //Requete HTTP qui reçoit les informations des utilisateurs-trice
-    this.addLanguages();
-    this.addLanguages();
+    // this.inscription.valueChanges.subscribe((value) => {
+    //   console.log(value);
+    //});
+    this.inscription.controls.favoriteColor.valueChanges.subscribe((value) => {
+      console.log('La valeur a changé ' + value);
+      if (value === 'purple') {
+        this.languages.addValidators(mustHave2LanguagesValidator);
+        this.languages.updateValueAndValidity();
+        return;
+      }
 
-    this.inscription.patchValue({
-      email: 'aurel@laposte.net',
-      security: {
-        password: 'toto',
-        confirm: 'toto',
-      },
-      languages: [
-        { name: 'php', level: 'debutant' },
-        { name: 'javascript', level: 'confirme' },
-      ],
+      this.languages.removeValidators(mustHave2LanguagesValidator);
+      this.languages.updateValueAndValidity();
     });
   }
 }
+
+const mustHave2LanguagesValidator: ValidatorFn = (control: AbstractControl) => {
+  const array = control as FormArray;
+  if (array.length < 2) {
+    return {
+      mustHave2Languages: true,
+    };
+  }
+
+  return null;
+};
 
 const confirmPasswordValidator: ValidatorFn = (
   control: AbstractControl<{
