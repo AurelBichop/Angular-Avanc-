@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
+  FormArray,
   FormControl,
   FormGroup,
   ValidatorFn,
@@ -98,13 +99,67 @@ import {
             La confirmation n'est pas identique au mot de passe
           </p>
         </div>
+
+        <h3>
+          Quels sont vos langages favoris ?
+          <button
+            (click)="addLanguages()"
+            class="btn btn-primary btn-sm"
+            type="button"
+          >
+            + Ajouter un languages
+          </button>
+        </h3>
+
+        <div class="alert bg-info" *ngIf="languages.controls.length === 0">
+          Vous n'avez pas ajoutez de langages
+        </div>
+        <div
+          class="row"
+          *ngFor="let group of languages.controls; let i = index"
+          [formGroup]="group"
+        >
+          <div class="col">
+            <input
+              type="text"
+              name=""
+              class="form-control mb-2"
+              placeholder="Nom du language"
+              formControlName="name"
+            />
+          </div>
+          <div class="col">
+            <select formControlName="level" class="form-control">
+              <option value="debutant">Débutant(e)</option>
+              <option value="confirme">Confirmé(e)</option>
+            </select>
+          </div>
+          <div (click)="languages.removeAt(i)" class="col-1">
+            <button class="btn btn-sm btn-danger" type="button">X</button>
+          </div>
+        </div>
+
         <button class="btn btn-success">Inscription</button>
       </form>
     </div>
   `,
 })
 export class AppComponent {
+  get languages() {
+    return this.inscription.controls.languages;
+  }
+
+  addLanguages() {
+    this.languages.push(
+      new FormGroup({
+        name: new FormControl(),
+        level: new FormControl('debutant'),
+      })
+    );
+  }
+
   inscription = new FormGroup({
+    languages: new FormArray<FormGroup>([]),
     email: new FormControl(
       '',
       [
@@ -146,6 +201,24 @@ export class AppComponent {
 
   get security() {
     return this.inscription.controls.security;
+  }
+
+  ngOnInit() {
+    //Requete HTTP qui reçoit les informations des utilisateurs-trice
+    this.addLanguages();
+    this.addLanguages();
+
+    this.inscription.setValue({
+      email: 'aurel@laposte.net',
+      security: {
+        password: 'toto',
+        confirm: 'toto',
+      },
+      languages: [
+        { name: 'php', level: 'debutant' },
+        { name: 'javascript', level: 'confirme' },
+      ],
+    });
   }
 }
 
