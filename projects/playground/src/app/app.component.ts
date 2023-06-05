@@ -99,7 +99,7 @@ import {
             La confirmation n'est pas identique au mot de passe
           </p>
         </div>
-
+        <app-color-picker formControlName="favoriteColor"></app-color-picker>
         <h3>
           Quels sont vos langages favoris ?
           <button
@@ -159,6 +159,7 @@ export class AppComponent {
   }
 
   inscription = new FormGroup({
+    favoriteColor: new FormControl(),
     languages: new FormArray<FormGroup>([]),
     email: new FormControl(
       '',
@@ -208,7 +209,7 @@ export class AppComponent {
     this.addLanguages();
     this.addLanguages();
 
-    this.inscription.setValue({
+    this.inscription.patchValue({
       email: 'aurel@laposte.net',
       security: {
         password: 'toto',
