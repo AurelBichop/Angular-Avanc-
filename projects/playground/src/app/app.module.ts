@@ -11,6 +11,8 @@ import { ReactiveInscriptionComponent } from './reactive-inscription.component';
 import { AppComponent } from './app.component';
 import { RecipesComponent } from './recipe.component';
 import { MoviesComponent } from './movies/movies.component';
+import { HttpClientModule } from '@angular/common/http';
+import { MoviesService } from './movies/movies.service';
 
 @NgModule({
   declarations: [
@@ -24,8 +26,8 @@ import { MoviesComponent } from './movies/movies.component';
     ColorPickerComponent,
     MoviesComponent,
   ],
-  imports: [BrowserModule, FormsModule, ReactiveFormsModule],
-  providers: [],
+  imports: [BrowserModule, FormsModule, ReactiveFormsModule, HttpClientModule],
+  providers: [MoviesService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
