@@ -10,7 +10,6 @@ export class MoviesService {
     method: 'GET',
     headers: {
       accept: 'application/json',
-      Authorization: apiKey,
     },
   };
 
@@ -19,7 +18,7 @@ export class MoviesService {
   getGenres() {
     return this.http
       .get<ApiGenresResponse>(
-        'https://api.themoviedb.org/3/genre/movie/list?language=fr-FR',
+        'https://api.themoviedb.org/3/genre/movie/list',
         this.options
       )
       .pipe(map((apiResponse) => apiResponse.genres));

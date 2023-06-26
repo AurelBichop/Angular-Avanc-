@@ -4,7 +4,7 @@ import {
   HttpClientTestingModule,
   HttpTestingController,
 } from '@angular/common/http/testing';
-import { HttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { ApiGenresResponse, ApiMovie } from './types';
 import {
   Spectator,
@@ -13,6 +13,7 @@ import {
   createHttpFactory,
   createServiceFactory,
 } from '@ngneat/spectator';
+import { MoviesKeyInterceptor } from './movies-key.interceptor';
 
 const MOCK_GENRES_RESPONSE: ApiGenresResponse = {
   genres: [
@@ -44,6 +45,13 @@ describe('MoviesService avec TestBed', () => {
   it('should get and transform genres', (done: DoneFn) => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
+      providers: [
+        {
+          provide: HTTP_INTERCEPTORS,
+          useClass: MoviesKeyInterceptor,
+          multi: true,
+        },
+      ],
     });
 
     const http = TestBed.inject(HttpClient);
@@ -68,6 +76,13 @@ describe('MoviesService avec TestBed', () => {
   it('should get transformed popular movies', (done: DoneFn) => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
+      providers: [
+        {
+          provide: HTTP_INTERCEPTORS,
+          useClass: MoviesKeyInterceptor,
+          multi: true,
+        },
+      ],
     });
 
     const http = TestBed.inject(HttpClient);
@@ -97,6 +112,13 @@ describe('MoviesService avec Spectator', () => {
 
   const createService = createHttpFactory({
     service: MoviesService,
+    providers: [
+      {
+        provide: HTTP_INTERCEPTORS,
+        useClass: MoviesKeyInterceptor,
+        multi: true,
+      },
+    ],
   });
 
   it('should get and transform genres', (done: DoneFn) => {
