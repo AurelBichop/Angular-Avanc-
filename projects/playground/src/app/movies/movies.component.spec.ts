@@ -1,4 +1,9 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
 import { MoviesComponent } from './movies.component';
 import {
   HttpClientTestingModule,
@@ -34,7 +39,7 @@ describe('MoviesComponent avec Spectator', () => {
     mocks: [MoviesService],
   });
 
-  it('should show movies', () => {
+  beforeEach(() => {
     spectator = createSpectator({
       detectChanges: false,
     });
@@ -46,13 +51,31 @@ describe('MoviesComponent avec Spectator', () => {
     spectator.inject(MoviesService).getGenres.and.returnValue(of([]));
 
     spectator.detectChanges();
+  });
 
+  it('should load more movies if we are at the bottom of the page', () => {
+    spectator.component.isBottomOfThePage = () => true;
+    window.dispatchEvent(new Event('scroll'));
+
+    expect(spectator.component.movies).toHaveLength(4);
+  });
+  it('should not load more movies if we sroll but are not at the bottom of the page', () => {
+    spectator.component.isBottomOfThePage = () => false;
+    window.dispatchEvent(new Event('scroll'));
+
+    expect(spectator.component.movies).toHaveLength(2);
+  });
+
+  it('should show movies', () => {
     expect(spectator.queryAll('.movie')).toHaveLength(2);
   });
 });
 
 describe('MoviesComponent avec TestBed', () => {
-  it('should show movies', async () => {
+  let fixture: ComponentFixture<MoviesComponent>;
+  let component: MoviesComponent;
+
+  beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [MoviesComponent],
       imports: [HttpClientTestingModule],
@@ -62,12 +85,34 @@ describe('MoviesComponent avec TestBed', () => {
     const service = TestBed.inject(MoviesService);
     const spy = spyOn(service, 'getPopularMovies');
 
+    const genreSpy = spyOn(service, 'getGenres');
+    genreSpy.and.returnValue(of([]));
+
     spy.and.returnValue(of(MOCK_MOVIES));
 
     // Notre test
-    const fixture = TestBed.createComponent(MoviesComponent);
+    fixture = TestBed.createComponent(MoviesComponent);
+    component = fixture.componentInstance;
     fixture.detectChanges();
+  });
 
+  it('should load more movies if we are at the bottom of the page', async () => {
+    component.isBottomOfThePage = () => true;
+
+    window.dispatchEvent(new Event('scroll'));
+
+    expect(fixture.componentInstance.movies.length).toBe(4);
+  });
+
+  it('should noy more movies if we are not at the bottom of the page', async () => {
+    component.isBottomOfThePage = () => false;
+
+    window.dispatchEvent(new Event('scroll'));
+
+    expect(component.movies.length).toBe(2);
+  });
+
+  it('should show movies', async () => {
     // On s'assure que des films apparaissent
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('.movie').length).toBe(2);

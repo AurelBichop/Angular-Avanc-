@@ -24,10 +24,11 @@ export class MoviesService {
       .pipe(map((apiResponse) => apiResponse.genres));
   }
 
-  getPopularMovies() {
+  getPopularMovies(page = 1) {
     return this.http
       .get<ApiPopularResponse>(
-        'https://api.themoviedb.org/3/movie/top_rated?language=fr-FR&page=1',
+        'https://api.themoviedb.org/3/movie/top_rated?language=fr-FR&page=' +
+          page,
         this.options
       )
       .pipe(

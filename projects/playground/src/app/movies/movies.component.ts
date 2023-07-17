@@ -2,6 +2,16 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ApiPopularResponse, Genres, Movies } from './types';
 import { MoviesService } from './movies.service';
+import {
+  combineLatest,
+  forkJoin,
+  fromEvent,
+  map,
+  tap,
+  filter,
+  distinctUntilChanged,
+  switchMap,
+} from 'rxjs';
 
 @Component({
   selector: 'app-movies',
@@ -34,24 +44,41 @@ import { MoviesService } from './movies.service';
 export class MoviesComponent implements OnInit {
   movies: Movies = [];
   genres: Genres = [];
+  page = 1;
 
   constructor(private service: MoviesService) {}
 
   ngOnInit(): void {
-    this.service.getGenres().subscribe((genres) => (this.genres = genres));
+    combineLatest([
+      this.service.getGenres(),
+      this.service.getPopularMovies(this.page),
+    ]).subscribe(([genres, movies]) => {
+      this.genres = genres;
+      this.movies = movies;
+    });
 
-    this.service
-      .getPopularMovies()
-      .subscribe((movies) => (this.movies = movies));
+    const scroll$ = fromEvent(window, 'scroll');
 
-    // fetch(
-    //   'https://api.themoviedb.org/3/movie/top_rated?language=fr-FR&page=1',
-    //   options
-    // )
-    //   .then((response) => response.json())
-    //   .then((result: any) => {
-    //     this.movies = result.results;
-    //   })
-    //   .catch((err) => console.error(err));
+    scroll$
+      .pipe(
+        map((scrollEvent) => this.isBottomOfThePage()),
+        distinctUntilChanged(),
+        filter((isBottom) => isBottom === true),
+        tap(() => this.page++),
+        switchMap(() => this.service.getPopularMovies(this.page))
+      )
+      .subscribe((movies) => {
+        console.log('On fait une requete');
+
+        this.movies = [...this.movies, ...movies];
+      });
+  }
+
+  isBottomOfThePage() {
+    const isBottom =
+      document.documentElement.scrollTop +
+        document.documentElement.clientHeight >=
+      document.documentElement.scrollHeight - 300;
+    return isBottom;
   }
 }
