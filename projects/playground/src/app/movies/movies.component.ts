@@ -11,6 +11,7 @@ import {
   filter,
   distinctUntilChanged,
   switchMap,
+  Subscription,
 } from 'rxjs';
 
 @Component({
@@ -46,10 +47,12 @@ export class MoviesComponent implements OnInit {
   genres: Genres = [];
   page = 1;
 
+  subscriptions: Subscription[] = [];
+
   constructor(private service: MoviesService) {}
 
   ngOnInit(): void {
-    combineLatest([
+    const initSub = combineLatest([
       this.service.getGenres(),
       this.service.getPopularMovies(this.page),
     ]).subscribe(([genres, movies]) => {
@@ -59,7 +62,7 @@ export class MoviesComponent implements OnInit {
 
     const scroll$ = fromEvent(window, 'scroll');
 
-    scroll$
+    const scrollSub = scroll$
       .pipe(
         map((scrollEvent) => this.isBottomOfThePage()),
         distinctUntilChanged(),
@@ -72,6 +75,14 @@ export class MoviesComponent implements OnInit {
 
         this.movies = [...this.movies, ...movies];
       });
+
+    this.subscriptions.push(initSub, scrollSub);
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((sub) => {
+      sub.unsubscribe();
+    });
   }
 
   isBottomOfThePage() {
