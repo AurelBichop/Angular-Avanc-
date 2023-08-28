@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FAKE_EMAILS_DATA } from '../data';
 import { Email } from './types';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, map } from 'rxjs';
+import { Observable, delay, map } from 'rxjs';
 
 @Component({
   selector: 'app-emails-list',
@@ -41,33 +41,54 @@ import { Observable, map } from 'rxjs';
 })
 export class EmailsListComponent {
   emailAndTiltle$?: Observable<{ emails: Email[]; title: string }>;
+  type?: string | null;
 
   constructor(private route: ActivatedRoute, private router: Router) {}
 
   goToEmail(id: number) {
-    this.router.navigateByUrl('/emails/read/' + id);
+    if (!this.type) {
+      this.router.navigate(['./', 'read', id], {
+        relativeTo: this.route,
+      });
+      return;
+    }
+
+    this.router.navigate(['../', 'read', id], {
+      relativeTo: this.route,
+    });
   }
 
   ngOnInit(): void {
-    this.emailAndTiltle$ = this.route.paramMap.pipe(
-      map((paramMap) => paramMap.get('type')),
-      map((type) => {
-        if (!type) {
-          return {
-            emails: (FAKE_EMAILS_DATA as Email[]).filter(
-              (email) => email.status === 'INBOX'
-            ),
-            title: 'Boite de Reception',
-          };
-        }
-
+    this.emailAndTiltle$ = this.route.data.pipe(
+      map((data) => {
         return {
-          emails: (FAKE_EMAILS_DATA as Email[]).filter(
-            (email) => email.status === type?.toUpperCase()
-          ),
-          title: type === 'sent' ? 'Emails envoyé' : 'Corbeille',
+          emails: data['emails'] as Email[],
+          title: data['title'],
         };
       })
     );
+
+    // this.emailAndTiltle$ = this.route.paramMap.pipe(
+    //   delay(1000),
+    //   map((paramMap) => paramMap.get('type')),
+    //   map((type) => {
+    //     this.type = type;
+    //     if (!type) {
+    //       return {
+    //         emails: (FAKE_EMAILS_DATA as Email[]).filter(
+    //           (email) => email.status === 'INBOX'
+    //         ),
+    //         title: 'Boite de Reception',
+    //       };
+    //     }
+
+    //     return {
+    //       emails: (FAKE_EMAILS_DATA as Email[]).filter(
+    //         (email) => email.status === type?.toUpperCase()
+    //       ),
+    //       title: type === 'sent' ? 'Emails envoyé' : 'Corbeille',
+    //     };
+    //   })
+    // );
   }
 }

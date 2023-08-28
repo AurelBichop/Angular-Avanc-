@@ -10,6 +10,7 @@ import { Component } from '@angular/core';
           type="email"
           placeholder="Votre adresse email"
           class="form-control"
+          autocomplete="username"
         />
       </div>
       <div class="form-group mb-2">
@@ -17,6 +18,7 @@ import { Component } from '@angular/core';
           type="password"
           placeholder="Mot de passe"
           class="form-control"
+          autocomplete="new-password"
         />
       </div>
       <div class="form-group mb-2">
@@ -24,6 +26,7 @@ import { Component } from '@angular/core';
           type="password"
           placeholder="Confirmation de mot de passe"
           class="form-control"
+          autocomplete="new-password"
         />
       </div>
       <button class="btn btn-success">Inscription</button>
