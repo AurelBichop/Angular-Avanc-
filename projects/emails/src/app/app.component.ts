@@ -1,6 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from './user/auth.service';
-import { Router } from '@angular/router';
+import {
+  ActivationStart,
+  GuardsCheckEnd,
+  NavigationEnd,
+  Router,
+} from '@angular/router';
 import { Observable } from 'rxjs';
 
 @Component({
@@ -53,6 +58,7 @@ import { Observable } from 'rxjs';
         </div>
       </div>
     </nav>
+    <app-loading-bar></app-loading-bar>
     <div class="container pt-5">
       <router-outlet></router-outlet>
     </div>`,

@@ -4,7 +4,7 @@ import {
   RouterStateSnapshot,
 } from '@angular/router';
 import { Email } from './types';
-import { Observable } from 'rxjs';
+import { Observable, delay, of } from 'rxjs';
 import { FAKE_EMAILS_DATA } from '../data';
 
 export class EmailsResolver implements Resolve<Email[]> {
@@ -14,14 +14,18 @@ export class EmailsResolver implements Resolve<Email[]> {
   ): Email[] | Observable<Email[]> | Promise<Email[]> {
     const type = route.paramMap.get('type');
 
+    let emails: Email[];
+
     if (!type) {
-      return (FAKE_EMAILS_DATA as Email[]).filter(
+      emails = (FAKE_EMAILS_DATA as Email[]).filter(
         (email) => email.status === 'INBOX'
+      );
+    } else {
+      emails = (FAKE_EMAILS_DATA as Email[]).filter(
+        (email) => email.status === type?.toUpperCase()
       );
     }
 
-    return (FAKE_EMAILS_DATA as Email[]).filter(
-      (email) => email.status === type.toUpperCase()
-    );
+    return of(emails).pipe(delay(2000));
   }
 }
